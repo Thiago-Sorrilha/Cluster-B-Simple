@@ -1,1 +1,89 @@
 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-acidentes
+  namespace: bsimple
+spec:
+  selector:
+    matchLabels:
+      app: backend-acidentes
+  template:
+    metadata:
+      labels:
+        app: backend-acidentes
+    spec:
+      imagePullSecrets:
+      - name: secretsealed-pull-azure-container-registry
+      restartPolicy: Always
+      containers:
+      - name: backend-acidentes-container
+        image: bsimple.azurecr.io/acidentes-backend:26138
+        imagePullPolicy: Always
+        env:
+          ######## SECRET RABBITMQ #########
+        - name: RABBITMQ__SERVER
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-rabbitmq
+              key: RABBITMQ__SERVER
+        - name: RABBITMQ__USER
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-rabbitmq
+              key: RABBITMQ__USER
+        - name: RABBITMQ__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-rabbitmq
+              key: RABBITMQ__PASSWORD
+        ######## SECRET POSTGRES #########
+        - name: POSTGRESQL__USER
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-postgres
+              key: POSTGRESQL__USER
+        - name: POSTGRESQL__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-postgres
+              key: POSTGRESQL__PASSWORD
+        - name: POSTGRESQL__SERVER
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-postgres
+              key: POSTGRESQL__SERVER
+        - name: POSTGRESQL__PORT
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-postgres
+              key: POSTGRESQL__PORT
+        ######## SECRET REDIS #########
+        - name: REDIS__SERVER
+          valueFrom:
+            secretKeyRef:
+              name: secretsealed-var-env-redis
+              key: REDIS__SERVER
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
