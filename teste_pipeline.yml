@@ -18,7 +18,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: backend-acidentes-container
-        image: bsimple.azurecr.io/acidentes-backend:26138
+        image: bsimple.azurecr.io/acidentes-backend:build_id
         imagePullPolicy: Always
         env:
           ######## SECRET RABBITMQ #########
